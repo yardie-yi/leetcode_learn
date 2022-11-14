@@ -1,0 +1,118 @@
+diff --git a/ui/comm/aui_version.h b/ui/comm/aui_version.h
+old mode 100644
+new mode 100755
+index 006fefd2..d664524b
+--- a/ui/comm/aui_version.h
++++ b/ui/comm/aui_version.h
+@@ -1,3 +1,3 @@
+-#define AUI_VERSION "AUI_1.0.1.3-34-g9b5de425"
+-#define AUI_DATE "Wed Nov 2 10:33:09 2022"
+-#define AUI_HASH "9b5de4250b24a1da281604815b3f271ae962308b"
++#define AUI_VERSION ""
++#define AUI_DATE ""
++#define AUI_HASH ""
+diff --git a/ui/product/adaptor/exe/win10_base/aui_win.cpp b/ui/product/adaptor/exe/win10_base/aui_win.cpp
+old mode 100644
+new mode 100755
+index 8f2db7f9..da44c50d
+--- a/ui/product/adaptor/exe/win10_base/aui_win.cpp
++++ b/ui/product/adaptor/exe/win10_base/aui_win.cpp
+@@ -692,31 +692,31 @@ bool output_cal_points()
+ 
+ bool init_alg()
+ {
+-    if (g_pCalParam == NULL) {
++    if (g_pCalParam == NULL) {  //由initParams_t结构体定义；详见ui/include/os/win/comm.h
+         g_pCalParam = (CAL_PARAM*)malloc(sizeof(CAL_PARAM));
+     }
+     memset(g_pCalParam, 0, sizeof(CAL_PARAM));
+ 
+-    if (g_ahdGL3DParam == NULL)
++    if (g_ahdGL3DParam == NULL)  //ahdGL3DParam;，GL3D模型生成所需参数结构体
+     {
+         g_ahdGL3DParam = (ahdGL3DParam*)malloc(sizeof(ahdGL3DParam));
+     }
+     memset(g_ahdGL3DParam, 0, sizeof(ahdGL3DParam));
+ 
+-    if (pAhdFrontRearParam == NULL)
++    if (pAhdFrontRearParam == NULL)  //ahdFrontRearParam;AHD前后视模型生成所需参数结构体
+     {
+         pAhdFrontRearParam = (ahdFrontRearParam*)malloc(sizeof(ahdFrontRearParam));
+     }
+     memset(pAhdFrontRearParam, 0, sizeof(ahdFrontRearParam));
+ 
+-    if (pAhdRVParam == NULL)
++    if (pAhdRVParam == NULL)  //ahdRVParam;AHD环视模型生成所需参数结构体
+     {
+         pAhdRVParam = (ahdRVParam*)malloc(sizeof(ahdRVParam));
+     }
+     memset(pAhdRVParam, 0, sizeof(ahdRVParam));
+ 
+-    LoadCameraLensData("data/CameraLensData.dat");
+-    if (configRead_calibratorConfigRead(g_pCalParam, "data/BV3D.xml"))
++    LoadCameraLensData("data/CameraLensData.dat");  //加载摄像头数据
++    if (configRead_calibratorConfigRead(g_pCalParam, "data/BV3D.xml")) //读取BV3D.xml数据，由initParams_t结构体定义；详见ui/include/os/win/comm.h
+     {
+         AUI_ERROR("Calibrator read failed!");
+         free(g_pCalParam);
+@@ -842,26 +842,31 @@ void world_to_eye_func(int dev_id, float x, float y, float* _x, float* _y)
+     cameras_world2eye_correction(dev_id, x, y, _x, _y);
+ }
+ 
++//设置分辨率
+ void SetResolution(int width, int height)
+ {
+-    DEVMODE dm;
++    DEVMODE dm;  //DEVMODE数据结构中包含了有关设备初始化和打印机环境的信息
+     memset(&dm, 0, sizeof(dm));
+-    dm.dmSize = sizeof(dm);
++    dm.dmSize = sizeof(dm);  //设置DEVMODE结构的大小，以字节为单位
+ 
+-    if (0 != EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dm))
++    //函数得到显示设备的一个图形模式设备，通过对该函数一系列的调用可以得到显示设备所有的图形模式信息
++    if (0 != EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dm))  //NULL值表明调用线程正运行在计算机的当前显示设备上
++        //ENUM_CURRENT_SETTINGS检索显示设备的当前设置
++        //dm存储指定图形模式的信息
+     {
+-        int savew = dm.dmPelsWidth;
+-        int saveh = dm.dmPelsHeight;
++        int savew = dm.dmPelsWidth;  //以像素为单位,指定可见设备表面的宽度.
++        int saveh = dm.dmPelsHeight;  //以像素为单位,指定可见设备表面的高度
+         dm.dmPelsWidth = width;
+         dm.dmPelsHeight = height;
+ 
+-        LONG result = ChangeDisplaySettings(&dm, 0);
++        LONG result = ChangeDisplaySettings(&dm, 0);  //该函数把缺省显示设备的设置改变为由dm设定的图形模式
+         if (result == DISP_CHANGE_SUCCESSFUL)
+         {
+             AUI_MSG("Display change successful [%dx%d]: %d", width, height, result);
+         }
+         else
+         {
++            //设置分辨率失败时，恢复默认值
+             dm.dmPelsWidth = savew;
+             dm.dmPelsHeight = saveh;
+             ChangeDisplaySettings(&dm, 0);
+@@ -903,15 +908,17 @@ void apa_exit_proc()
+ /// <param name="showCommand">Specifies how the window is to be shown, ignored.</param>
+ int WINAPI WinMain(HINSTANCE applicationInstance, HINSTANCE previousInstance, TCHAR* /*commandLineString*/, int /*showCommand*/)
+ {
+-    int  cx = GetSystemMetrics(SM_CXSCREEN);
+-    int  cy = GetSystemMetrics(SM_CYSCREEN);
++    //用GetSystemMetrics获取屏幕的宽度和高度
++    int  cx = GetSystemMetrics(SM_CXSCREEN); //屏幕宽度
++    int  cy = GetSystemMetrics(SM_CYSCREEN);  //屏幕高度
+ 
+-    if (cx != WindowWidth || cy != WindowHeight)
++    //如果没有获取到屏幕分辨率则设置分辨率
++    if (cx != WindowWidth || cy != WindowHeight)  //WindowWidth = 1920、WindowHeight = 1080
+     {
+-        SetResolution(WindowWidth, WindowHeight);
++        SetResolution(WindowWidth, WindowHeight);  //设置分辨率
+     }
+ 
+-    SetProcessDPIAware();
++    SetProcessDPIAware();  // 将进程默认 DPI 感知设置为系统 DPI 感知
+ 
+     // Perform the chain of initialisation step (stop if anything fails)
+     createWindowAndDisplay(applicationInstance, nativeWindow, deviceContext) &&
