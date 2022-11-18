@@ -1,0 +1,435 @@
+From 6e610e8955a18d26fc41b1a3e78f632422290d63 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E2=80=9Cyardie=E2=80=9D?= <yiwanming-ubuntu18>
+Date: Fri, 18 Nov 2022 21:50:50 +0800
+Subject: [PATCH] update to 1118
+
+---
+ ui/aicontrol/aipage.cpp                       |  0
+ ui/comm/aui_version.h                         |  6 +--
+ ui/comm/debug.cpp                             |  2 +-
+ ui/datamng/pugixml/pugixml.hpp                |  0
+ .../adaptor/exe/win10_base/apaAdapter.cpp     |  4 +-
+ .../adaptor/exe/win10_base/aui_init.cpp       | 44 ++++++++++++++-----
+ ui/product/adaptor/exe/win10_base/aui_win.cpp | 30 +++++++++++--
+ .../adaptor/exe/win10_base/pages/avmpage.cpp  |  1 +
+ ui/product/adaptor/util/QxmlContainer.cpp     |  0
+ ui/product/adaptor/util/app_cfg.cpp           |  8 ++--
+ 10 files changed, 71 insertions(+), 24 deletions(-)
+ mode change 100644 => 100755 ui/aicontrol/aipage.cpp
+ mode change 100644 => 100755 ui/comm/debug.cpp
+ mode change 100644 => 100755 ui/datamng/pugixml/pugixml.hpp
+ mode change 100644 => 100755 ui/product/adaptor/exe/win10_base/apaAdapter.cpp
+ mode change 100644 => 100755 ui/product/adaptor/exe/win10_base/aui_init.cpp
+ mode change 100644 => 100755 ui/product/adaptor/exe/win10_base/pages/avmpage.cpp
+ mode change 100644 => 100755 ui/product/adaptor/util/QxmlContainer.cpp
+ mode change 100644 => 100755 ui/product/adaptor/util/app_cfg.cpp
+
+diff --git a/ui/aicontrol/aipage.cpp b/ui/aicontrol/aipage.cpp
+old mode 100644
+new mode 100755
+diff --git a/ui/comm/aui_version.h b/ui/comm/aui_version.h
+index 8d039eda..10470ce5 100755
+--- a/ui/comm/aui_version.h
++++ b/ui/comm/aui_version.h
+@@ -1,3 +1,3 @@
+-#define AUI_VERSION "AUI_1.0.1.5-t-6-g12b2d8aa"
+-#define AUI_DATE "Fri Nov 11 16:36:25 2022"
+-#define AUI_HASH "12b2d8aa5e0cda9426d780edb2f5e35a4a50cd75"
++#define AUI_VERSION "AUI_1.0.1.5-t-7-gce1b9ed3"
++#define AUI_DATE "Mon Nov 14 20:12:58 2022"
++#define AUI_HASH "ce1b9ed30ef694eca4201ef08425e25b5d1d0b6c"
+diff --git a/ui/comm/debug.cpp b/ui/comm/debug.cpp
+old mode 100644
+new mode 100755
+index 47de7bca..6289e688
+--- a/ui/comm/debug.cpp
++++ b/ui/comm/debug.cpp
+@@ -4,7 +4,7 @@
+ 
+ wstring_convert<codecvt_utf8<wchar_t> > converter;
+ 
+-LogLevel _logLevel = LogLevel::Error;
++LogLevel _logLevel = LogLevel::Debug;
+ 
+ void SetLogLevel(LogLevel logLevel)
+ {
+diff --git a/ui/datamng/pugixml/pugixml.hpp b/ui/datamng/pugixml/pugixml.hpp
+old mode 100644
+new mode 100755
+diff --git a/ui/product/adaptor/exe/win10_base/apaAdapter.cpp b/ui/product/adaptor/exe/win10_base/apaAdapter.cpp
+old mode 100644
+new mode 100755
+index cf50d24d..ce02a035
+--- a/ui/product/adaptor/exe/win10_base/apaAdapter.cpp
++++ b/ui/product/adaptor/exe/win10_base/apaAdapter.cpp
+@@ -475,7 +475,7 @@ ApaAdapter::ApaAdapter(string cfgPath) :
+     if (cfgOption == NULL)
+     {
+         cfgOption = new CfgOption();
+-        ParseCfg(cfgPath, cfgOption);
++        ParseCfg(cfgPath, cfgOption);  //获取data/application.cfg文件数据
+ 
+         string manualSlot = "";
+         for (int i = 0; i < 4; i++)
+@@ -806,6 +806,7 @@ void* ApaAdapter::_TSControlThreadCallback(void* arg)
+ 
+ void ApaAdapter::StartApa()
+ {
++    cout << "====APA start =====" << __LINE__ << "-" << __FUNCTION__ << endl;
+     if (cfgOption->controlMethod == ControlMethod::Replay)
+     {
+         cfgOption->controlLoopIndex++;
+@@ -1130,6 +1131,7 @@ bool ApaAdapter::SetParkSlot()
+ 
+ void ApaAdapter::StopApa()
+ {
++    cout << "====APA exit =====" << __LINE__ << "-" << __FUNCTION__ << endl;
+     ApaState::Deinit();
+ 
+     if (_apaProcessor != NULL)
+diff --git a/ui/product/adaptor/exe/win10_base/aui_init.cpp b/ui/product/adaptor/exe/win10_base/aui_init.cpp
+old mode 100644
+new mode 100755
+index 7981edc9..771f1ceb
+--- a/ui/product/adaptor/exe/win10_base/aui_init.cpp
++++ b/ui/product/adaptor/exe/win10_base/aui_init.cpp
+@@ -91,11 +91,11 @@ void init_frame_texture_datas(FrameTexType type, int* width, int* height, unsign
+     if (type == FrameTexType::NV12 ||
+         type == FrameTexType::NV21)
+     {
+-        read_local_pic_raw((void**)datas, *width, *height);
++        read_local_pic_raw((void**)datas, *width, *height);  //从NV12源文件获取信息放到datas中
+     }
+     else
+     {
+-        read_local_pic_bmp((void**)datas, *width, *height);
++        read_local_pic_bmp((void**)datas, *width, *height); //从bmp源文件获取信息放到datas中
+     }
+ }
+ 
+@@ -151,6 +151,7 @@ void aui_deinit_frame_buffer()
+ 
+ void aui_set_world_to_eye(world_to_eye func)
+ {
++    cout << "===middle fuc====" << endl;
+     w_2_e_func = func;
+ }
+ 
+@@ -166,16 +167,19 @@ void aui_set_capture_proc(CAPTURE_PICTURE_PROC proc)
+ 
+ void aui_set_apa_enter_proc(APA_ENTER_PROC proc)
+ {
++    cout << "====APA middle func =====" << __LINE__ << "-" << __FUNCTION__ << endl;
+     apa_enter_proc = proc;
+ }
+ 
+ void aui_set_apa_operate_proc(APA_OPERATE_PROC proc)
+ {
++    cout << "====APA proc middle func =====" << __LINE__ << "-" << __FUNCTION__ << endl;
+     apa_operate_proc = proc;
+ }
+ 
+ void aui_set_apa_exit_proc(APA_EXIT_PROC proc)
+ {
++    cout << "====APA exit middle func =====" << __LINE__ << "-" << __FUNCTION__ << endl;
+     apa_exit_proc = proc;
+ }
+ 
+@@ -312,8 +316,10 @@ void aui_set_radar_distance(int group, int index, float distance)
+ 
+ void BTN_AVM_AUTO_PARKING_CLICK(AiControl* sender, int x, int y)
+ {
++    cout << "====BTN_AVM_AUTO_PARKING_CLICK =====" << __LINE__ << "-" << __FUNCTION__ << endl;
+     if (apa_enter_proc != NULL)
+     {
++        cout << "====apa_enter_proc =====" << __LINE__ << "-" << __FUNCTION__ << endl;
+         apa_enter_proc();
+     }
+ 
+@@ -385,32 +391,36 @@ void APA_OPERATE_CLICK(AiControl* sender, int x, int y)
+     }
+ }
+ 
++/*获取.config/aiui_cfg.xml数据*/
+ bool aui_init(string cfg)
+ {
+     cout << "Aui version:" << AiControl::get_version() << endl;
+     cout << "Aui last update:" << AiControl::get_update_date() << endl;
+     cout << "Aui git commit:" << AiControl::get_hash() << endl;
+ 
+-    if (!AiControl::init())
++    if (!AiControl::init())   //设置AiSize的width、height为0
+     {
+         return false;
+     }
+ 
+-    init_ui_controls(cfg);
++    //初始化车模、照片、图标、按键等位置。
++    init_ui_controls(cfg);  //传入.config/aiui_cfg.xml   ----》界面按键、图片、位置的配置
+ 
+-    form = AiControl::get_main_form();
++    form = AiControl::get_main_form();   //form指向AiControl类中的base_form静态变量（位于\ui\aicontrol\aicontrol.cpp），所有AiControl类的对象共用一个静态变量值。
+ 
+     if (_model_datas[0] == NULL)
+     {
+-        init_mix_model_data(_model_datas, &_elements, &_tstep, &_rstep);
++        //如果_model_datas参数未赋值，则使用默认值
++        //_model_datas、_elements、_rstep、_tstep赋值
++        init_mix_model_data(_model_datas, &_elements, &_tstep, &_rstep);  //frame_model.h数据
+     }
+ 
+     if (frame_datas[0] == NULL && frame_type != FrameTexType::Extern)
+     {
+-        init_frame_texture_datas(frame_type, &frame_width, &frame_height, frame_datas);
++        init_frame_texture_datas(frame_type, &frame_width, &frame_height, frame_datas);  //获取原图nv12或bmp数据放到frame_datas中，frame_type默认为NV12
+     }
+ 
+-    if (_single_datas[0] == NULL)
++    if (_single_datas[0] == NULL)  //frame_model_single.h数据
+     {
+         init_single_data(&_single_datas[0], &_single_elements, &_single_tstep, &_single_rstep);
+         init_single_data(&_single_datas[1], &_single_elements, &_single_tstep, &_single_rstep);
+@@ -418,7 +428,7 @@ bool aui_init(string cfg)
+         init_single_data(&_single_datas[3], &_single_elements, &_single_tstep, &_single_rstep);
+     }
+ 
+-    if (_single_2d_lr_datas[0] == NULL)
++    if (_single_2d_lr_datas[0] == NULL) //2Ddata.h数据
+     {
+         TDdataReadSingleLR((string(APP_BASE_PATH) + string(APP_MODEL_PATH) + "2Ddata.h").data(), &_single_2d_lr_wstep, &_single_2d_lr_hstep,
+             &_single_2d_lr_elements, &_single_2d_lr_datas[0]);
+@@ -429,6 +439,14 @@ bool aui_init(string cfg)
+     }
+ 
+     ModelData mix3DModel(DEFAULT_DATA_NUMBER, MIX_MODEL_DIMENSION);
++    /*
++    dataNumber = 4;
++	dimension = 8;
++	datas = (float**)malloc(sizeof(float**) * dataNumber);
++	elements = NULL;
++	tStep = 0;
++	rStep = 0;
++    */
+     mix3DModel.SetParameters(_model_datas, DEFAULT_DATA_NUMBER, _elements, _tstep, _rstep);
+     ModelData mix2DModel(DEFAULT_DATA_NUMBER, MIX_MODEL_DIMENSION);
+     mix2DModel.SetParameters(_model_datas_2d, DEFAULT_DATA_NUMBER, _elements_2d, _tstep_2d, _rstep_2d);
+@@ -449,6 +467,7 @@ bool aui_init(string cfg)
+     AvmPage::SetWorldToEye(w_2_e_func);
+     AvmPage::InitProc();
+ 
++    //轨迹线显示
+     if (!avmData->auxiline.inited)
+     {
+         avmData->auxiline.length = 3.5f;
+@@ -459,6 +478,7 @@ bool aui_init(string cfg)
+         avmData->auxiline.sectionNum = 40;
+     }
+ 
++    //车体显示
+     if (!avmData->car.inited)
+     {
+         avmData->car.tread = 1.670f;
+@@ -468,6 +488,7 @@ bool aui_init(string cfg)
+         avmData->car.inited = true;
+     }
+ 
++    //雷达墙显示
+     if (!avmData->radar.inited)
+     {
+         avmData->radar.number = RADAR_WALL_MAX_NUMBER;
+@@ -479,7 +500,8 @@ bool aui_init(string cfg)
+         avmData->radar.inited = true;
+     }
+ 
+-    AiPage::init_page((int)AiPageType::AVM, (int)AvmPage::PageType::Views, avmData);
++    //点击按键进入APA
++    AiPage::init_page((int)AiPageType::AVM, (int)AvmPage::PageType::Views, avmData);  //静态函数初始化
+     AvmPage::btn_avm_auto_parking->click = BTN_AVM_AUTO_PARKING_CLICK;
+ 
+     // Init APA Pages
+@@ -487,7 +509,7 @@ bool aui_init(string cfg)
+     ApaPage::SetMix2DModel(&mix2DModel);
+     ApaPage::SetMixSingleModel(&singleModel);
+     ApaPage::SetFrameData(&frameData);
+-    ApaPage::SetWorldToEye(w_2_e_func);
++    ApaPage::SetWorldToEye(w_2_e_func);  //APA无需此功能，w_2_e_func = NULL
+     ApaPage::InitProc();
+ 
+     if (!apaData->car.inited)
+diff --git a/ui/product/adaptor/exe/win10_base/aui_win.cpp b/ui/product/adaptor/exe/win10_base/aui_win.cpp
+index da44c50d..c64c3746 100755
+--- a/ui/product/adaptor/exe/win10_base/aui_win.cpp
++++ b/ui/product/adaptor/exe/win10_base/aui_win.cpp
+@@ -65,23 +65,29 @@ ApaAdapter* apaAdapter = NULL;
+ /* APA diagnose */
+ void TOGGLE_MANUAL_SLOT_CHECKED(AiControl* sender, bool checked)
+ {
++    cout << "====APA diagnose =====" << __LINE__ << "-" << __FUNCTION__ << endl;
+     if (!ApaPage::IsEnterApa())
+     {
++        cout << "====APA diagnose =====" << __LINE__ << "-" << __FUNCTION__ << endl;
+         return;
+     }
+ 
+     if (checked)
+     {
++        cout << "====APA diagnose =====" << __LINE__ << "-" << __FUNCTION__ << endl;
+         apaAdapter->cfgOption->isUsingTestSlot = true;
+     }
+     else
+     {
++        cout << "====APA diagnose =====" << __LINE__ << "-" << __FUNCTION__ << endl;
+         apaAdapter->cfgOption->isUsingTestSlot = false;
+     }
++    cout << "====APA diagnose =====" << __LINE__ << "-" << __FUNCTION__ << endl;
+ }
+ 
+ void APA_DIAGNOSE_TOGGLE_CHECKED(AiControl* sender, bool checked)
+ {
++    cout << "====APA_DIAGNOSE_TOGGLE_CHECKED =====" << __LINE__ << "-" << __FUNCTION__ << endl;
+     if (!ApaPage::IsEnterApa())
+     {
+         return;
+@@ -159,12 +165,14 @@ void APA_DIAGNOSE_TOGGLE_CHECKED(AiControl* sender, bool checked)
+ 
+ void init_apa_diagnose_callback()
+ {
++    cout << "====start middle fuc=====" << __LINE__ << ",," << __FUNCTION__ << endl;
+     ApaPage::toggle_manual_slot->check_changed = TOGGLE_MANUAL_SLOT_CHECKED;
+ 
+     ApaPage::toggle_gear_p->check_changed = APA_DIAGNOSE_TOGGLE_CHECKED;
+     ApaPage::toggle_gear_n->check_changed = APA_DIAGNOSE_TOGGLE_CHECKED;
+     ApaPage::toggle_gear_r->check_changed = APA_DIAGNOSE_TOGGLE_CHECKED;
+     ApaPage::toggle_gear_d->check_changed = APA_DIAGNOSE_TOGGLE_CHECKED;
++    cout << "====END middle fuc=====" << __LINE__ << ",," << __FUNCTION__ << endl;
+ }
+ 
+ /// <summary>Processes event messages for the main window.</summary>
+@@ -692,7 +700,10 @@ bool output_cal_points()
+ 
+ bool init_alg()
+ {
++    std::cout << "====start init_alg in:"  << __FUNCTION__ << __LINE__ << "======" << std::endl;
++
+     if (g_pCalParam == NULL) {  //由initParams_t结构体定义；详见ui/include/os/win/comm.h
++        std::cout << "====malloc g_pCalParam:" << __FUNCTION__ << __LINE__ << "======" << std::endl;
+         g_pCalParam = (CAL_PARAM*)malloc(sizeof(CAL_PARAM));
+     }
+     memset(g_pCalParam, 0, sizeof(CAL_PARAM));
+@@ -723,7 +734,7 @@ bool init_alg()
+         g_pCalParam = NULL;
+         return false;
+     }
+-
++    
+     int TraceLineSampleNum = 0;
+ 
+     float LenXYR[4][3];
+@@ -731,7 +742,7 @@ bool init_alg()
+     float LEDXY[4][8][2];
+     float LEDST[4][8][2];
+     int LenID = g_pCalParam->LensType;
+-
++    std::cout << "====g_pCalParam->LensType:" << g_pCalParam->LensType << __FUNCTION__  + __LINE__ << "======" << std::endl;
+     for (int channel = 0; channel < 4; channel++)
+     {
+         AiPointF points[8];
+@@ -834,11 +845,14 @@ bool init_alg()
+         1,
+         pAhdRVParam);
+ 
++    std::cout << "====end init_alg in:" << __FILE__ << __FUNCTION__ << __LINE__ << "======" << std::endl;
+     return true;
+ }
+ 
+ void world_to_eye_func(int dev_id, float x, float y, float* _x, float* _y)
+ {
++    //cout << "======callback world_to_eye_func;==========" << __LINE__ << endl;
++    //cout << "======para value;==========" << dev_id << x << y << _x << _y << __LINE__ << endl;
+     cameras_world2eye_correction(dev_id, x, y, _x, _y);
+ }
+ 
+@@ -935,14 +949,22 @@ int WINAPI WinMain(HINSTANCE applicationInstance, HINSTANCE previousInstance, TC
+         // Setup the EGL Context from the other EGL constructs created so far, so that the application is ready to submit OpenGL ES commands
+         setupEGLContext(display, config, surface, context, nativeWindow);
+ 
+-    if (!init_alg())
++    if (!init_alg())  //初始化AVM算法AVM的内容
+     {
+         AUI_ERROR("Alg init failed!");
+         return 0;
+     }
++    
++    //gl3Dmodel在init_alg中GL3DModel_init赋值
+ 
++    //_model_datas_2d、_elements_2d、_tstep_2d、_rstep_2d赋值
+     aui_set_mix_model_2d(gl3Dmodel->vbo_2d_Wstep, gl3Dmodel->vbo_2d_Hstep, gl3Dmodel->vbo_buffer_index_2D, gl3Dmodel->vbo_buffer_data_2D);
++    //_model_datas、_elements、_rstep、_tstep赋值
+     aui_set_mix_model(gl3Dmodel->ovalTstep, gl3Dmodel->ovalRstep, gl3Dmodel->vbo_buffer_index, gl3Dmodel->vbo_buffer_data);
++    cout << "====" << __LINE__ << ";" << gl3Dmodel->vbo_2d_Wstep << "," << gl3Dmodel->vbo_2d_Hstep << "," << gl3Dmodel->vbo_buffer_index_2D << "," << gl3Dmodel->vbo_buffer_data_2D << "====" << endl;
++    cout << "====" << __LINE__ << ";" << gl3Dmodel->ovalTstep << "," << gl3Dmodel->ovalRstep << "," << gl3Dmodel->vbo_buffer_index << "," << gl3Dmodel->vbo_buffer_data << "========" << endl;
++
++    //指定镜头后，单点世界坐标系位置到鱼眼坐标系位置变换函数
+     aui_set_world_to_eye(world_to_eye_func);
+ 
+     if (!aui_init(string(APP_BASE_PATH) + string(APP_CONFIG_PATH) + "aiui_cfg.xml"))
+@@ -951,7 +973,7 @@ int WINAPI WinMain(HINSTANCE applicationInstance, HINSTANCE previousInstance, TC
+         return 0;
+     }
+ 
+-    apaAdapter = new ApaAdapter(APP_BASE_PATH + string("data/application.cfg"));
++    apaAdapter = new ApaAdapter(APP_BASE_PATH + string("data/application.cfg"));  //获取data/application.cfg配置数据放于apaAdapter.cpp 的 cfgOption 中;
+     init_apa_diagnose_callback();
+     aui_set_apa_enter_proc(apa_enter_proc);
+     aui_set_apa_operate_proc(apa_operate_proc);
+diff --git a/ui/product/adaptor/exe/win10_base/pages/avmpage.cpp b/ui/product/adaptor/exe/win10_base/pages/avmpage.cpp
+old mode 100644
+new mode 100755
+index 75f1e28b..b00a004f
+--- a/ui/product/adaptor/exe/win10_base/pages/avmpage.cpp
++++ b/ui/product/adaptor/exe/win10_base/pages/avmpage.cpp
+@@ -136,6 +136,7 @@ CameraIndex AvmPage::GetViewIndex(AiControl* control, int x, int y)
+ 
+ void AvmPage::SetWorldToEye(world_to_eye func)
+ {
++    cout << "=======SetWorldToEye middle func============" << endl;
+     w_2_e_func = func;
+ }
+ 
+diff --git a/ui/product/adaptor/util/QxmlContainer.cpp b/ui/product/adaptor/util/QxmlContainer.cpp
+old mode 100644
+new mode 100755
+diff --git a/ui/product/adaptor/util/app_cfg.cpp b/ui/product/adaptor/util/app_cfg.cpp
+old mode 100644
+new mode 100755
+index bef29587..669433cb
+--- a/ui/product/adaptor/util/app_cfg.cpp
++++ b/ui/product/adaptor/util/app_cfg.cpp
+@@ -672,12 +672,12 @@ void _get_controls(xml_node subNode, AiControl* parent)
+ void init_ui_controls(string cfg)
+ {
+     uint64_t time_0 = getTick();
+-    AiControl* base_form = AiControl::get_main_form();
++    AiControl* base_form = AiControl::get_main_form();  //获取AiControl类数据
+ 
+-    vector<AiControl*> controls;
++    vector<AiControl*> controls;  //类型为AiControl的容器
+ 
+     xml_document doc;
+-    xml_parse_result result = doc.load_file((string(APP_BASE_PATH) + string(APP_MODEL_PATH) + "model.xml").data());
++    xml_parse_result result = doc.load_file((string(APP_BASE_PATH) + string(APP_MODEL_PATH) + "model.xml").data());   //加载车模
+     if (result.status == status_ok)
+     {
+         const char* str = NULL;
+@@ -744,7 +744,7 @@ void init_ui_controls(string cfg)
+ 
+     uint64_t time_1 = getTick();
+ 
+-    result = doc.load_file(cfg.data());
++    result = doc.load_file(cfg.data());   //加载.config/aiui_cfg.xml   ----》界面按键、图片、位置的配置
+     if (result.status == status_ok)
+     {
+         const char* str = NULL;
+-- 
+2.17.1
+
