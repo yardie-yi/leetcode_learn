@@ -1,0 +1,371 @@
+From a288f8b45f0feb3e9c9bb19c3fd3084e62fbc76c Mon Sep 17 00:00:00 2001
+From: yardie <641233646@qq.com>
+Date: Mon, 21 Nov 2022 10:15:47 +0800
+Subject: [PATCH] update to 1120 in laptop
+
+---
+ ui/include/os/win/comm.h                      |  0
+ .../adaptor/exe/win10_base/aui_init.cpp       |  3 +-
+ ui/product/adaptor/exe/win10_base/aui_win.cpp | 30 ++++++---
+ ui/product/adaptor/util/QxmlContainer.cpp     | 61 ++++++++++---------
+ ui/product/adaptor/util/lens.cpp              |  2 +-
+ ui/product/adaptor/util/multicamera.cpp       |  2 +-
+ 6 files changed, 58 insertions(+), 40 deletions(-)
+ mode change 100644 => 100755 ui/include/os/win/comm.h
+ mode change 100644 => 100755 ui/product/adaptor/util/lens.cpp
+ mode change 100644 => 100755 ui/product/adaptor/util/multicamera.cpp
+
+diff --git a/ui/include/os/win/comm.h b/ui/include/os/win/comm.h
+old mode 100644
+new mode 100755
+diff --git a/ui/product/adaptor/exe/win10_base/aui_init.cpp b/ui/product/adaptor/exe/win10_base/aui_init.cpp
+index 771f1ceb..41936c1c 100755
+--- a/ui/product/adaptor/exe/win10_base/aui_init.cpp
++++ b/ui/product/adaptor/exe/win10_base/aui_init.cpp
+@@ -151,7 +151,7 @@ void aui_deinit_frame_buffer()
+ 
+ void aui_set_world_to_eye(world_to_eye func)
+ {
+-    cout << "===middle fuc====" << endl;
++    cout << "===aui_set_world_to_eye middle fuc====" << __LINE__ << endl;
+     w_2_e_func = func;
+ }
+ 
+@@ -464,6 +464,7 @@ bool aui_init(string cfg)
+     AvmPage::SetMixSingleModel(&singleModel);
+     AvmPage::SetFrameData(&frameData);
+     AvmPage::SetSingle2DLRModel(&single2DLRModel);
++    cout << " AvmPage::SetWorldToEye(w_2_e_func);" << __LINE__ << __FUNCTION__ << endl;
+     AvmPage::SetWorldToEye(w_2_e_func);
+     AvmPage::InitProc();
+ 
+diff --git a/ui/product/adaptor/exe/win10_base/aui_win.cpp b/ui/product/adaptor/exe/win10_base/aui_win.cpp
+index c64c3746..cfd61e32 100755
+--- a/ui/product/adaptor/exe/win10_base/aui_win.cpp
++++ b/ui/product/adaptor/exe/win10_base/aui_win.cpp
+@@ -54,7 +54,7 @@ bool HasUserQuit = false;
+ int x_pos;
+ int y_pos;
+ 
+-CAL_PARAM* g_pCalParam = NULL;
++CAL_PARAM* g_pCalParam = NULL;   //ä»data/BV3D.xmlè·å–æ•°æ®
+ ahdGL3DParam* g_ahdGL3DParam = NULL;
+ ahdRVParam* pAhdRVParam = NULL;
+ ahdFrontRearParam* pAhdFrontRearParam = NULL;
+@@ -702,12 +702,17 @@ bool init_alg()
+ {
+     std::cout << "====start init_alg in:"  << __FUNCTION__ << __LINE__ << "======" << std::endl;
+ 
+-    if (g_pCalParam == NULL) {  //ç”±initParams_tç»“æ„ä½“å®šä¹‰ï¼›è¯¦è§ui/include/os/win/comm.h
++    if (g_pCalParam == NULL) {  //ç”±initParams_tç»“æ„ä½“å®šä¹‰ï¼›è¯¦è§ui/include/os/win/comm.h;é•œå¤´åŠè½¦ä½“ä¿¡æ¯
+         std::cout << "====malloc g_pCalParam:" << __FUNCTION__ << __LINE__ << "======" << std::endl;
+         g_pCalParam = (CAL_PARAM*)malloc(sizeof(CAL_PARAM));
+     }
++
++
++
+     memset(g_pCalParam, 0, sizeof(CAL_PARAM));
+ 
++
++    //g_ahdGL3DParamã€pAhdFrontRearParamã€pAhdRVParamåŸå‹ä½äºutil/camerainit.h
+     if (g_ahdGL3DParam == NULL)  //ahdGL3DParam;ï¼ŒGL3Dæ¨¡å‹ç”Ÿæˆæ‰€éœ€å‚æ•°ç»“æ„ä½“
+     {
+         g_ahdGL3DParam = (ahdGL3DParam*)malloc(sizeof(ahdGL3DParam));
+@@ -726,6 +731,8 @@ bool init_alg()
+     }
+     memset(pAhdRVParam, 0, sizeof(ahdRVParam));
+ 
++
++    //ä»¥ä¸‹ä¸ºæ ‡å®šæ‹¼æ¥æ•°æ®
+     LoadCameraLensData("data/CameraLensData.dat");  //åŠ è½½æ‘„åƒå¤´æ•°æ®
+     if (configRead_calibratorConfigRead(g_pCalParam, "data/BV3D.xml")) //è¯»å–BV3D.xmlæ•°æ®ï¼Œç”±initParams_tç»“æ„ä½“å®šä¹‰ï¼›è¯¦è§ui/include/os/win/comm.h
+     {
+@@ -790,6 +797,9 @@ bool init_alg()
+         LEDST,
+         LenID);
+ 
++
++
++
+     if (configRead_ahdGL3DParamConfigRead(g_ahdGL3DParam, "data/GL3DModel.xml"))
+     {
+         AUI_ERROR("GL3DModel read failed!");
+@@ -849,10 +859,15 @@ bool init_alg()
+     return true;
+ }
+ 
++
++
+ void world_to_eye_func(int dev_id, float x, float y, float* _x, float* _y)
+ {
++    static int yiwanming_count = 0;
++    yiwanming_count++;
+     //cout << "======callback world_to_eye_func;==========" << __LINE__ << endl;
+     //cout << "======para value;==========" << dev_id << x << y << _x << _y << __LINE__ << endl;
++    cout << "===============================" << yiwanming_count << "=============" << endl;
+     cameras_world2eye_correction(dev_id, x, y, _x, _y);
+ }
+ 
+@@ -949,24 +964,25 @@ int WINAPI WinMain(HINSTANCE applicationInstance, HINSTANCE previousInstance, TC
+         // Setup the EGL Context from the other EGL constructs created so far, so that the application is ready to submit OpenGL ES commands
+         setupEGLContext(display, config, surface, context, nativeWindow);
+ 
+-    if (!init_alg())  //åˆå§‹åŒ–AVMç®—æ³•AVMçš„å†…å®¹
++    if (!init_alg())  //åˆå§‹åŒ–AVMç®—æ³•AVMçš„å†…å®¹ï¼›åŠ è½½æ ‡å®šæ–‡ä»¶data/BV3D.xmlã€data/GL3DModel.xmlã€data/AHDModel.xmlã€data/RVModel.xml
+     {
+         AUI_ERROR("Alg init failed!");
+         return 0;
+     }
+     
+-    //gl3Dmodelåœ¨init_algä¸­GL3DModel_initèµ‹å€¼
++    //gl3Dmodelåœ¨init_algä¸­GL3DModel_initèµ‹å€¼ï¼Œæ•°æ®æ¥æºdata/BV3D.xmlï¼ˆLineLã€LineWã€eyeWã€eyeHã€cycWã€cycHï¼‰ã€
++    //data/GL3DModel.xmlï¼ˆfloat dlr;float drr;float dfrï¼‰
+ 
+-    //_model_datas_2dã€_elements_2dã€_tstep_2dã€_rstep_2dèµ‹å€¼
++    //æœ¬æ–‡ä»¶æ–°çš„å˜é‡_model_datas_2dã€_elements_2dã€_tstep_2dã€_rstep_2dèµ‹å€¼
+     aui_set_mix_model_2d(gl3Dmodel->vbo_2d_Wstep, gl3Dmodel->vbo_2d_Hstep, gl3Dmodel->vbo_buffer_index_2D, gl3Dmodel->vbo_buffer_data_2D);
+-    //_model_datasã€_elementsã€_rstepã€_tstepèµ‹å€¼
++    //æœ¬æ–‡ä»¶æ–°çš„å˜é‡_model_datasã€_elementsã€_rstepã€_tstepèµ‹å€¼
+     aui_set_mix_model(gl3Dmodel->ovalTstep, gl3Dmodel->ovalRstep, gl3Dmodel->vbo_buffer_index, gl3Dmodel->vbo_buffer_data);
+     cout << "====" << __LINE__ << ";" << gl3Dmodel->vbo_2d_Wstep << "," << gl3Dmodel->vbo_2d_Hstep << "," << gl3Dmodel->vbo_buffer_index_2D << "," << gl3Dmodel->vbo_buffer_data_2D << "====" << endl;
+     cout << "====" << __LINE__ << ";" << gl3Dmodel->ovalTstep << "," << gl3Dmodel->ovalRstep << "," << gl3Dmodel->vbo_buffer_index << "," << gl3Dmodel->vbo_buffer_data << "========" << endl;
+ 
+     //æŒ‡å®šé•œå¤´åï¼Œå•ç‚¹ä¸–ç•Œåæ ‡ç³»ä½ç½®åˆ°é±¼çœ¼åæ ‡ç³»ä½ç½®å˜æ¢å‡½æ•°
+     aui_set_world_to_eye(world_to_eye_func);
+-
++    
+     if (!aui_init(string(APP_BASE_PATH) + string(APP_CONFIG_PATH) + "aiui_cfg.xml"))
+     {
+         AUI_ERROR("Aui init failed!\n");
+diff --git a/ui/product/adaptor/util/QxmlContainer.cpp b/ui/product/adaptor/util/QxmlContainer.cpp
+index 207db439..db09fdd3 100755
+--- a/ui/product/adaptor/util/QxmlContainer.cpp
++++ b/ui/product/adaptor/util/QxmlContainer.cpp
+@@ -74,28 +74,28 @@ int configRead_readOneLine(
+     }
+     
+ 	char lineBuf[128]={0x00};
+-    if(fgets(lineBuf, 128, pFd) == NULL)
++    if(fgets(lineBuf, 128, pFd) == NULL)  //´ÓpFd¶ÁÈ¡128×Ö·ûµ½lineBuf
+     {
+         //printf("%s : read line failed.", __func__); 
+         return -1;
+     }
+     char *ptmp = NULL;
+-    if(!(ptmp=strstr(lineBuf, "=")))
++    if(!(ptmp=strstr(lineBuf, "=")))  //ÔÚlineBufÖĞ²éÕÒ¡°=¡±µÚÒ»´Î³öÏÖµÄÎ»ÖÃ£¨µØÖ·£©
+     {
+         if (strlen(lineBuf) == 0)
+         {
+             return -1;
+         }
+-        else if ((strcmp(lineBuf, "\r\n") == 0) || (strcmp(lineBuf, "\n") == 0))
++        else if ((strcmp(lineBuf, "\r\n") == 0) || (strcmp(lineBuf, "\n") == 0))  //Êı¾İÎª¿ÕÔò·µ»Ø-1
+         {
+             return -1;
+         }
+         AUI_ERROR("%s : format error", __func__);
+         return -1;
+     }
+-    memset((void*)pTokenStr, 0x00, bufsize);
+-    memcpy(pTokenStr, lineBuf, ptmp-lineBuf);
+-    strcpy(pValueStr, ptmp+1);
++    memset((void*)pTokenStr, 0x00, bufsize);  //¸´ÖÆ0x00µ½pTokenStrµÄÇ°bufsize¸öÎ»ÖÃ¡£set 0
++    memcpy(pTokenStr, lineBuf, ptmp-lineBuf); //¡°=¡±Ç°µÄÄÚÈİ¸´ÖÆµ½pTokenStr
++    strcpy(pValueStr, ptmp+1);//¸´ÖÆ¡°=¡±ºóµÄÄÚÈİµ½pValueStr
+     return 0;
+ }
+ 
+@@ -609,8 +609,8 @@ int configRead_calibratorConfigRead(CAL_PARAM *pParam, const char *filename)
+         return -1;
+     }
+ 
+-    char tokenstr[128] = {0x00};
+-    char valuestr[128] = {0x00};
++    char tokenstr[128] = {0x00};  //¡°=¡±Ç°µÄÄÚÈİ
++    char valuestr[128] = {0x00};  //¡°=" ºóµÄÄÚÈİ
+     AUI_DBG("------------------Clibrator parameters-----------------");
+     while(!configRead_readOneLine(pConfFd, tokenstr, sizeof(tokenstr), valuestr))
+     {
+@@ -624,7 +624,7 @@ int configRead_calibratorConfigRead(CAL_PARAM *pParam, const char *filename)
+             }
+             #endif
+         }
+-        sscanf(valuestr,"%f",&value);
++        sscanf(valuestr,"%f",&value); //valuestrÊı¾İÔ´£»Âú×ã%f´æµ½valueÖĞ
+         //float value = (float)atof(valuestr);
+ 
+         //Yue@20160609
+@@ -646,40 +646,40 @@ int configRead_calibratorConfigRead(CAL_PARAM *pParam, const char *filename)
+         
+         else if(!strcmp(tokenstr, "ModelID"))
+         {
+-            pParam->ModelID = (int)value;
++            pParam->ModelID = (int)value;//< Æû³µÄ£ĞÍ±àºÅ
+             AUI_DBG("ModelID=%d",(int)value);
+         }
+         else if(!strcmp(tokenstr, "LineL"))
+         {
+-            pParam->LineL = value;
+-            pParam->LenMZ = pParam->LineL/3.5;
++            pParam->LineL = value;//< ÂÖÀªÏßÈÆ³µÉí³¤¶È
++            pParam->LenMZ = pParam->LineL/3.5;//< ºóÊÓ¾µµ½³µÉíÇ°·½µÄ¾àÀë
+             AUI_DBG("LineL=%.2f",pParam->LineL);
+         }
+         else if(!strcmp(tokenstr, "LineW"))
+         {
+-            pParam->LineW = value;
++            pParam->LineW = value;//< ÂÖÀªÏßÈÆ³µÉí¿í¶È
+             AUI_DBG("LineW=%.2f",pParam->LineW);
+         }
+ 
+ //20170901 added        
+         else if(!strcmp(tokenstr, "WheelBase"))
+         {
+-            pParam->WheelBase = value;
++            pParam->WheelBase = value; //Öá¾à
+             AUI_DBG("WheelBase=%.2f",pParam->WheelBase);
+         }
+         else if(!strcmp(tokenstr, "RearTrack"))
+         {
+-            pParam->RearTrack = value;
++            pParam->RearTrack = value;//ºóÂÖ¾à
+             AUI_DBG("RearTrack=%.2f",pParam->RearTrack);
+         }
+         else if(!strcmp(tokenstr, "ReaSuspensionLength"))
+         {
+-            pParam->ReaSuspensionLength = value;
++            pParam->ReaSuspensionLength = value;//ºóĞü
+             AUI_DBG("ReaSuspensionLength=%.2f",pParam->ReaSuspensionLength);
+         }
+         else if(!strcmp(tokenstr, "TraceLengthFront"))
+         {
+-            pParam->TraceLengthFront = value;
++            pParam->TraceLengthFront = value; //¹ì¼£Ïß³¤¶È
+             AUI_MSG("TraceLengthFront=%.2f",pParam->TraceLengthFront);
+         }
+         else if(!strcmp(tokenstr, "TraceLengthRear"))
+@@ -695,69 +695,69 @@ int configRead_calibratorConfigRead(CAL_PARAM *pParam, const char *filename)
+ //20170727 added
+         else if(!strcmp(tokenstr, "Dlr"))
+         {
+-            pParam->Dlr = value;
++            pParam->Dlr = value;//×óÓÒ¿ÉÊÓ¾àÀë
+             AUI_DBG("Dlr=%.2f",pParam->Dlr);
+         }
+         else if(!strcmp(tokenstr, "Dfr"))
+         {
+-            pParam->Dfr = value;
++            pParam->Dfr = value;//Ç°Ïò¿ÉÊÓ¾àÀë
+             AUI_DBG("Dfr=%.2f",pParam->Dfr);
+         }
+         else if(!strcmp(tokenstr, "Drr"))
+         {
+-            pParam->Drr = value;
++            pParam->Drr = value;//ºóÏò¿ÉÊÓ¾àÀë
+             AUI_DBG("Drr=%.2f",pParam->Drr);
+         }
+ //20160913 added
+         else if(!strcmp(tokenstr, "LensType"))
+         {
+-            pParam->LensType = (int)value;
++            pParam->LensType = (int)value;//¾µÍ·ĞÍºÅ£¬0:NVC,     1:ĞÅÀû£¬ 2:ÓÅ´´
+             AUI_DBG("LensType=%d",pParam->LensType);
+         }
+         else if(!strcmp(tokenstr, "CarL"))
+         {
+-            pParam->CarL = value;
++            pParam->CarL = value;//±ê¶¨²¼³¤¶È£¬µ¥Î»cm
+             AUI_DBG("CarL=%.2f",pParam->CarL);
+         }
+         else if(!strcmp(tokenstr, "CarW"))
+         {
+-            pParam->CarW = value;
++            pParam->CarW = value;//±ê¶¨²¼¿í¶È£¬µ¥Î»cm
+             AUI_DBG("CarW=%.2f",pParam->CarW);
+         }
+         else if(!strcmp(tokenstr, "FrontLM"))
+         {
+-            pParam->FrontLM = value;
++            pParam->FrontLM = value;//Ç°ºóÖĞ¼äÄ£°åµ½Á½²àÄ£°åµÄ¾àÀë ,µ¥Î»: cm
+             AUI_DBG("FrontLM=%.2f",pParam->FrontLM);
+         }
+         else if(!strcmp(tokenstr, "LeftRM"))
+         {
+-            pParam->LeftRM = value;
++            pParam->LeftRM = value;//×óÓÒÖĞ¼äµÄÄ£°åµ½Ç°·½Ä£°åµÄ¾àÀë, µ¥Î»:cm
+             AUI_DBG("LeftRM=%.2f",pParam->LeftRM);
+         }
+         else if(!strcmp(tokenstr, "eyer"))
+         {
+-            pParam->eyer = value;
++            pParam->eyer = value;//ÏñËØ³ß´ç£¬µ¥Î»: mm
+             AUI_DBG("eyer=%.2f",pParam->eyer);
+         }
+ //20160913 add end      
+         else if(!strcmp(tokenstr, "eyeW"))
+         {
+-            pParam->eyeW = (int)value;
++            pParam->eyeW = (int)value;//< VPSSÊä³öÍ¼Ïñ¿í¶È 2013.5.26  (ÓãÑÛÍ¼Ïñ)
+             AUI_DBG("eyeW=%d",pParam->eyeW);
+         }
+         else if(!strcmp(tokenstr, "eyeH"))
+         {
+-            pParam->eyeH = (int)value;
++            pParam->eyeH = (int)value;//< VPSSÊä³öÍ¼Ïñ¸ß¶È            (ÓãÑÛÍ¼Ïñ)
+             AUI_DBG("eyeH=%d",pParam->eyeH);
+         }
+         else if(!strcmp(tokenstr, "cycW"))
+         {
+-            pParam->cycW = (int)value;
++            pParam->cycW = (int)value;//< CMOSÊä³öÍ¼Ïñ¿í¶È             (ÕıÔ²)
+             AUI_DBG("cycW=%d",pParam->cycW);
+         }
+         else if(!strcmp(tokenstr, "cycH"))
+         {
+-            pParam->cycH = (int)value;
++            pParam->cycH = (int)value;//< CMOSÊä³öÍ¼Ïñ¸ß¶È             (ÕıÔ²)
+             AUI_DBG("cycH=%d",pParam->cycH);
+         }
+         else if(!strcmp(tokenstr, "LEDW"))
+@@ -802,6 +802,7 @@ int configRead_calibratorConfigRead(CAL_PARAM *pParam, const char *filename)
+         }
+         else
+         {
++            //ÉãÏñÍ·±ê¶¨Êı¾İ
+             //printf("tokenstr:%s", tokenstr);
+             if(strstr(tokenstr, "Len"))
+             {
+diff --git a/ui/product/adaptor/util/lens.cpp b/ui/product/adaptor/util/lens.cpp
+old mode 100644
+new mode 100755
+index e31e7258..778ff7fb
+--- a/ui/product/adaptor/util/lens.cpp
++++ b/ui/product/adaptor/util/lens.cpp
+@@ -3,7 +3,7 @@
+ 
+ #include "lens.h"
+ 
+-float* LenData[50];
++float* LenData[50];  //ä»data/CameraLensData.datè·å–æ•°æ®
+ CameraLensData cameralensdata;
+ 
+ 
+diff --git a/ui/product/adaptor/util/multicamera.cpp b/ui/product/adaptor/util/multicamera.cpp
+old mode 100644
+new mode 100755
+index f7a61a01..2bac4e9f
+--- a/ui/product/adaptor/util/multicamera.cpp
++++ b/ui/product/adaptor/util/multicamera.cpp
+@@ -262,7 +262,7 @@ void MultiCamera::world2eye(const int nChannel, float *eyex, float *eyey, float
+ void MultiCamera::world2eye_correction(const int nChannel, float &eyex, float &eyey, const float worldx, const float worldy)
+ {
+     if(nChannel > -1 && nChannel < 4)
+-        m_cameras[nChannel]->world2eye_correct(eyex, eyey, worldx, worldy);
++        m_cameras[nChannel]->world2eye_correct(eyex, eyey, worldx, worldy); // åˆ©ç”¨æ ‡è®°ç‚¹ä½ç½®ï¼ŒæŒ‰ç…§ç‰©ç†åæ ‡ç³»åªå­˜å¤–æ’åœ¨é±¼çœ¼çŸ«æ­£åæ ‡ç³»çš„ä½ç½®
+ 
+ }
+ 
+-- 
+2.17.1
+
